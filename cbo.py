@@ -51,3 +51,24 @@ def prepare_form_payload(session, cbo_code):
       'javax.faces.ViewState': get_javax_faces_viewstate(resp)
     }
     return data
+
+
+def get_occupation(content):
+    occupation = re.search(
+        r'<span style="font-weight: bold">(.*?)</span>',
+        content.decode('latin-1')
+    )
+    return occupation.group(1) if occupation else ''
+
+
+def search(cbo_code):
+    session = requests.session()
+    headers = prepare_headers()
+    data = prepare_form_payload(session, cbo_code)
+    resp = session.post(URL, data=data, headers=headers)
+    occupation = get_occupation(resp.content)
+    return occupation
+
+
+if __name__ == "__main__":
+    occupation = search('5211-25')
