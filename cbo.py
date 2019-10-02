@@ -38,3 +38,16 @@ def prepare_headers():
     }
 
     return headers
+
+
+def prepare_form_payload(session, cbo_code):
+    headers = prepare_headers()
+    resp = session.get(URL, headers=headers)
+    data = {
+      'formBuscaPorCodigo': 'formBuscaPorCodigo',
+      'DTPINFRA_TOKEN': get_dtpinfra_token(resp),
+      'formBuscaPorCodigo:j_idt84': cbo_code,
+      'formBuscaPorCodigo:btConsultarCodigo': 'Consultar',
+      'javax.faces.ViewState': get_javax_faces_viewstate(resp)
+    }
+    return data
