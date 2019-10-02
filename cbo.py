@@ -12,3 +12,11 @@ def get_javax_faces_viewstate(resp):
         resp.content.decode('latin-1')
     )
     return view_state.group(1)
+
+
+def get_dtpinfra_token(resp):
+    dtpinfra_token = re.search(
+        r'name="DTPINFRA_TOKEN" value="(\d+)"',
+        resp.content.decode('latin-1')
+    )
+    return dtpinfra_token.group(1)
