@@ -8,18 +8,26 @@ from bs4 import BeautifulSoup
 URL = 'http://www.mtecbo.gov.br/cbosite/pages/pesquisas/BuscaPorCodigo.jsf'
 
 
-def simple_fifo_cache(func):
-    entries = dict()
+def simple_fifo_cache(cache_size):
+    def inner_decorator(func):
+        entries = dict()
+        args_order = []
 
-    def inner(cbo_code):
-        if cbo_code in entries:
-            return entries[cbo_code]
+        def inner(cbo_code):
+            if cbo_code in entries:
+                return entries[cbo_code]
 
-        resp = func(cbo_code)
-        entries[cbo_code] = resp
-        return resp
+            resp = func(cbo_code)
+            entries[cbo_code] = resp
+            args_order.append(cbo_code)
+            if len(args_order) == cache_size:
+                entries.pop(args_order.pop(0))
 
-    return inner
+            return resp
+
+        return inner
+
+    return inner_decorator
 
 
 def get_javax_faces_viewstate(resp):
@@ -74,7 +82,7 @@ def get_occupation(content):
     return soup.find('span', {'style': 'font-weight: bold'}).text
 
 
-@simple_fifo_cache
+@simple_fifo_cache(cache_size=50)
 def search(cbo_code):
     session = requests.session()
     headers = prepare_headers()
