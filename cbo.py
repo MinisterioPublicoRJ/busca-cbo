@@ -8,6 +8,29 @@ from bs4 import BeautifulSoup
 URL = 'http://www.mtecbo.gov.br/cbosite/pages/pesquisas/BuscaPorCodigo.jsf'
 
 
+def simple_fifo_cache(cache_size):
+    def inner_decorator(func):
+        entries = dict()
+        args_order = []
+
+        def inner(cbo_code):
+            cbo_code = format(cbo_code)
+            if cbo_code in entries:
+                return entries[cbo_code]
+
+            resp = func(cbo_code)
+            entries[cbo_code] = resp
+            args_order.append(cbo_code)
+            if len(args_order) == cache_size:
+                entries.pop(args_order.pop(0))
+
+            return resp
+
+        return inner
+
+    return inner_decorator
+
+
 def get_javax_faces_viewstate(resp):
     view_state = re.search(
         r'id="javax.faces.ViewState" value="(-?\d+:-?\d+)"',
@@ -57,11 +80,15 @@ def prepare_form_payload(session, cbo_code):
 
 def get_occupation(content):
     soup = BeautifulSoup(content, 'lxml')
-    table = soup.find('table', {'id': 'formBuscaPorCodigo:objetos2'})
-    ps = table.find_all('p', {'class': 'justificadoPortal'})
-    return ps[2].text.strip()
+    return soup.find('span', {'style': 'font-weight: bold'}).text
 
 
+def format(cbo_code):
+    code = re.sub(r'\D', '', cbo_code)
+    return '{0}-{1}'.format(code[:5], code[5:])
+
+
+@simple_fifo_cache(cache_size=50)
 def search(cbo_code):
     session = requests.session()
     headers = prepare_headers()
