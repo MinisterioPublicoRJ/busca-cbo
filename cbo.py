@@ -2,6 +2,8 @@ import re
 
 import requests
 
+from bs4 import BeautifulSoup
+
 
 URL = 'http://www.mtecbo.gov.br/cbosite/pages/pesquisas/BuscaPorCodigo.jsf'
 
@@ -54,11 +56,10 @@ def prepare_form_payload(session, cbo_code):
 
 
 def get_occupation(content):
-    occupation = re.search(
-        r'<span style="font-weight: bold">(.*?)</span>',
-        content.decode('latin-1')
-    )
-    return occupation.group(1) if occupation else ''
+    soup = BeautifulSoup(content, 'lxml')
+    table = soup.find('table', {'id': 'formBuscaPorCodigo:objetos2'})
+    ps = table.find_all('p', {'class': 'justificadoPortal'})
+    return ps[2].text.strip()
 
 
 def search(cbo_code):
