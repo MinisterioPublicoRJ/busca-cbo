@@ -71,9 +71,7 @@ def prepare_form_payload(session, cbo_code):
 
 def get_occupation(content):
     soup = BeautifulSoup(content, 'lxml')
-    table = soup.find('table', {'id': 'formBuscaPorCodigo:objetos2'})
-    ps = table.find_all('p', {'class': 'justificadoPortal'})
-    return ps[2].text.strip()
+    return soup.find('span', {'style': 'font-weight: bold'}).text
 
 
 @simple_fifo_cache
