@@ -14,6 +14,7 @@ def simple_fifo_cache(cache_size):
         args_order = []
 
         def inner(cbo_code):
+            cbo_code = format(cbo_code)
             if cbo_code in entries:
                 return entries[cbo_code]
 
@@ -80,6 +81,11 @@ def prepare_form_payload(session, cbo_code):
 def get_occupation(content):
     soup = BeautifulSoup(content, 'lxml')
     return soup.find('span', {'style': 'font-weight: bold'}).text
+
+
+def format(cbo_code):
+    code = re.sub(r'\D', '', cbo_code)
+    return '{0}-{1}'.format(code[:5], code[5:])
 
 
 @simple_fifo_cache(cache_size=50)
